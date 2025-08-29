@@ -1,0 +1,51 @@
+// Breakpoints (inspired by TailwindCSS)
+$screen-xs-min: 320px;
+$screen-sm-min: 640px;
+$screen-md-min: 768px;
+$screen-lg-min: 1024px;
+$screen-xl-min: 1280px;
+$screen-xl-pad-min: 1328px;
+$screen-2xl-min: 1536px;
+
+// Greater than
+@mixin xs {
+  @media screen and (min-width: #{$screen-xs-min}) {
+    @content;
+  }
+}
+
+@mixin sm {
+  @media screen and (min-width: #{$screen-sm-min}) {
+    @content;
+  }
+}
+
+@mixin md {
+  @media screen and (min-width: #{$screen-md-min}) {
+    @content;
+  }
+}
+
+@mixin lg {
+  @media screen and (min-width: #{$screen-lg-min}) {
+    @content;
+  }
+}
+
+@mixin xl {
+  @media screen and (min-width: #{$screen-xl-min}) {
+    @content;
+  }
+}
+
+@mixin xl-pad {
+  @media screen and (min-width: #{$screen-xl-pad-min}) {
+    @content;
+  }
+}
+
+@mixin lt-md {
+  @media screen and (min-width: 0) and (max-width: #{$screen-md-min - 1}) {
+    @content;
+  }
+}
