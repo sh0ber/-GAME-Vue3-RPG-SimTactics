@@ -4,9 +4,7 @@ import { Game } from "@/game/Game.js";
 
 export const useGameStore = defineStore("game", () => {
   const game = new Game();
-
   const tickStep = 1 / FPS; // fixed timestep
-  const timeScale = 1.0;
 
   let lastTime;
   let loopId = null;
@@ -15,7 +13,7 @@ export const useGameStore = defineStore("game", () => {
     const now = performance.now();
     const delta = ((now - lastTime) / 1000);
     lastTime = now;
-    let scaledDelta = delta * timeScale;
+    let scaledDelta = delta * game.timeScale;
     
     // Fixed-step to allow ticks & fast-forward
     while (scaledDelta >= tickStep) {
@@ -41,10 +39,10 @@ export const useGameStore = defineStore("game", () => {
     }
   }
 
+  start();
+
   return {
     game,       // full simulation engine
-    tickStep,
-    timeScale,
     start,
     stop,
   };
