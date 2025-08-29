@@ -3,11 +3,11 @@ import { ProcManager } from '@/game/systems/Battle/ProcManager.js';
 
 export class Battle {
   constructor(teams) {
-    // Wrap all characters in BattleCharacter
+    // Wrap all characters in TeamMember
     this.teams = teams.map(team =>
       new TeamManager({
         name: team.name,
-        characters: team.characters // TeamManager wraps in BattleCharacter
+        characters: team.characters // TeamManager wraps in TeamMember
       })
     );
     this.procManager = new ProcManager();
@@ -19,7 +19,7 @@ export class Battle {
     if (!this.isActive) return;
     for (const t of this.teams) {
       if (!t.isAlive) continue;
-      for (const c of t.characters) {
+      for (const c of t.members) {
         c.update(delta);
         c.nextAttackTime -= delta;
         if (c.nextAttackTime <= 0) {
@@ -43,11 +43,11 @@ export class Battle {
   }
 
   _chooseRandomTarget(attacker) {
-    const enemyTeams = this.teams.filter(t => !t.characters.includes(attacker) && t.isAlive);
+    const enemyTeams = this.teams.filter(t => !t.members.includes(attacker) && t.isAlive);
     if (!enemyTeams.length) return;
 
     const enemyTeam = enemyTeams[Math.floor(Math.random() * enemyTeams.length)];
-    const targets = enemyTeam.getLivingCharacters();
+    const targets = enemyTeam.getLiving();
     if (targets.length === 0) return;
 
     return targets[Math.floor(Math.random() * targets.length)];

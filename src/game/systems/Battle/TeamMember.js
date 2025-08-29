@@ -1,4 +1,4 @@
-export class BattleCharacter {
+export class TeamMember {
   constructor(character) {
     this.character = character;
     this.nextAttackTime = 0;

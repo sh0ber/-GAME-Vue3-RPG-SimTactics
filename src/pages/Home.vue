@@ -28,9 +28,9 @@ const test = () => {
       <div style="display: flex; gap: 0 1rem;">
         <div v-for="team in game.battleManager.battle.teams">
           <h3>{{  team.name  }}</h3>
-          <div v-for="character in team.characters">
-            <span>{{ character.name }} [{{ character.level }}]</span>&nbsp;
-            <span>{{ character.getStat('hp') }} / {{ character.getStatMax('hp') }}</span>
+          <div v-for="member in team.members">
+            <span>{{ member.name }} [{{ member.level }}]</span>&nbsp;
+            <span>{{ member.getStat('hp') }} / {{ member.getStatMax('hp') }}</span>
           </div>
         </div>
       </div>

@@ -1,44 +1,36 @@
 import { EventEmitter } from '@/game/EventEmitter.js';
 import { Character } from '@/game/models/Character/Character.js';
-import { BattleCharacter } from '@/game/systems/Battle/BattleCharacter.js';
+import { TeamMember } from '@/game/systems/Battle/TeamMember.js';
 
 export class TeamManager extends EventEmitter {
   constructor({ name, characters = [] }) {
     super();
     this.name = name;
-    this.characters = []; // Characters added below
-    this.addCharacters(characters);
+    this.members = []; // Characters added below
+    this.addMembers(characters);
   }
 
   get isAlive() {
-    return this.characters.some(c => c.isAlive);
+    return this.members.some(m => m.isAlive);
   }
 
-  addCharacter(character) {
-    const bc = new BattleCharacter(character);
+  addMember(character) {
     character.on('Character.Death', () => this._onCharacterDeath());
-    this.characters.push(bc);
-    return bc;
+    const m = new TeamMember(character);
+    this.members.push(m);
+    return m;
   }
 
-  addCharacters(characters) {
-    for (const c of characters) this.addCharacter(c);
+  addMembers(characters) {
+    for (const c of characters) this.addMember(c);
   }
 
-  addRandomCharacter(count, fn = this._defaultRandomGenerator.bind(this)) {
-    this.addCharacters(fn(count));
+  addRandomMember(count, fn = this._defaultRandomGenerator.bind(this)) {
+    this.addMembers(fn(count));
   }
 
-  hasCharacter(character) {
-    return this.characters.includes(character);
-  }  
-
-  getLivingCharacters() {
-    return this.characters.filter(c => c.isAlive);
-  }
-
-  numLivingCharacters() {
-    return this.getLivingCharacters().length;
+  getLiving() {
+    return this.members.filter(m => m.isAlive);
   }
 
   _defaultRandomGenerator(numRandomCharacters) {
