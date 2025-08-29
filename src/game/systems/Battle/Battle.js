@@ -1,15 +1,9 @@
-import { TeamManager } from '@/game/systems/Battle/TeamManager.js';
 import { ProcManager } from '@/game/systems/Battle/ProcManager.js';
 
 export class Battle {
   constructor(teams) {
     // Wrap all characters in TeamMember
-    this.teams = teams.map(team =>
-      new TeamManager({
-        name: team.name,
-        characters: team.characters // TeamManager wraps in TeamMember
-      })
-    );
+    this.teams = teams;
     this.procManager = new ProcManager();
     this.teamWinner = null;
     this.isActive = true;

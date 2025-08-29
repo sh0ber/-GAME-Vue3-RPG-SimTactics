@@ -1,6 +1,7 @@
 <script setup>
 import { useGameStore } from '@/store/game.js';
 import { Character } from '@/game/models/Character/Character.js';
+import { TeamManager } from '@/game/systems/Battle/TeamManager.js';
 
 const { game, timeScale } = useGameStore();
 const { battleManager } = game;
@@ -10,9 +11,12 @@ const test = () => {
   const playerChar = new Character({ name: 'Bopsky', stats: { hp: 100 } });
   const goblin = new Character({ name: 'Goblin King', stats: { hp: 100 } });
 
-  // Create teams
-  const playerTeam = { name: 'Player', characters: [playerChar] };
-  const enemyTeam = { name: 'Goblins', characters: [goblin] };
+  // Create team POJOs
+  const playerTeam = new TeamManager({ name: 'Player', characters: [playerChar] });
+  const enemyTeam = new TeamManager({ name: 'Goblins', characters: [goblin] });
+
+  playerTeam.addRandomMember(2);
+  enemyTeam.addRandomMember(2);
 
   // Start battle
   battleManager.start([playerTeam, enemyTeam]);

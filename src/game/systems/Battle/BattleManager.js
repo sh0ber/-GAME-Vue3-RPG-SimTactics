@@ -12,7 +12,6 @@ export class BattleManager {
       console.error('[BattleManager] Need at least 2 teams to start a battle');
       return;
     }
-
     this.battle = new Battle(teams);
     this.history.push(this.battle);
   }
