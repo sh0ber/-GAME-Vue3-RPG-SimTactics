@@ -14,8 +14,9 @@ export class BattleManager extends EventEmitter {
       console.error('[BattleManager] Need at least 2 teams to start a battle');
       return;
     }
-    this.battle = new Battle(teams);
-    this.battle.on('Battle.end', results => this._onBattleEnd(results));
+    const battle = new Battle(teams);
+    battle.on('Battle.end', results => this._onBattleEnd(results));
+    this.battle = battle;
   }
 
   update(delta) {
