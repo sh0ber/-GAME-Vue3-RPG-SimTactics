@@ -34,7 +34,7 @@ export class Battle extends EventEmitter {
             console.log('AWAITING PLAYER ACTION...')
             return; // Pause the loop and wait for player input
           } else {
-            this._handleAutoAction();
+            this._handleAutoAction(member);
           }
         }
       }
