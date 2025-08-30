@@ -77,3 +77,10 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+.no-select {
+  user-select: none;
+  -webkit-user-select: none; /* For older WebKit browsers (e.g., Safari, Chrome) */
+  -moz-user-select: none;    /* For older Firefox browsers */
+  -ms-user-select: none;     /* For older Internet Explorer/Edge */
+}

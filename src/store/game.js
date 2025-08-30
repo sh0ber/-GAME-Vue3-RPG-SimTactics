@@ -1,4 +1,4 @@
-import { reactive } from 'vue';
+import { reactive, computed } from 'vue';
 import { defineStore } from "pinia";
 import { FPS } from '@/game/config.js';
 import { Game } from "@/game/Game.js";
@@ -44,6 +44,7 @@ export const useGameStore = defineStore("game", () => {
 
   return {
     game,
+    battle: computed(() => game.battleManager.battle),
     start,
     stop,
   };

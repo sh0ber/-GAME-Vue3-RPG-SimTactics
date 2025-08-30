@@ -17,6 +17,7 @@ export class BattleManager extends EventEmitter {
     const battle = new Battle(teams);
     battle.on('Battle.end', results => this._onBattleEnd(results));
     this.battle = battle;
+    return battle;
   }
 
   update(delta) {

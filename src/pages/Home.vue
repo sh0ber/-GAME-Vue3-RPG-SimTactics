@@ -1,9 +1,10 @@
 <script setup>
+import { storeToRefs } from 'pinia';
 import { useGameStore } from '@/store/game.js';
 import { Character } from '@/game/models/Character/Character.js';
 import { TeamManager } from '@/game/systems/Battle/TeamManager.js';
 
-const store = useGameStore();
+const { game, battle } = storeToRefs(useGameStore());
 
 const test = () => {
   // Create test characters
@@ -18,21 +19,23 @@ const test = () => {
   enemyTeam.addRandomMember(2);
   
   // Start battle
-  store.game.battleManager.start([playerTeam, enemyTeam]);
+  game.value.battleManager.start([playerTeam, enemyTeam]);
 }
 </script>
 
 <template>
   <div class="page">
-    <div><input type="number" v-model="store.game.timeScale" /> {{ store.game.timeScale }}</div>
+    <div><input type="number" v-model="game.timeScale" /> {{ game.timeScale }}</div>
     <div><button @click="test">Test</button></div>
-    <template v-if="store.game.battleManager.battle">
-      <div>Turn: {{ store.game.battleManager.battle.memberActing?.character.name }}</div>
+    <template v-if="battle">
       <div style="display: flex; gap: 0 1rem;">
-        <div v-for="team in store.game.battleManager.battle.teams">
+        <div v-for="team in battle.teams">
           <h3>{{  team.name  }}</h3>
-          <div v-for="member in team.members" class="member" :class="{ acting: member.id === store.game.battleManager.battle.memberActing?.id }">
-            <span>{{ member.id }}</span>
+          <div v-for="member in team.members"
+            class="member no-select"
+            :class="{ acting: member.id === battle.memberActing?.id }"
+            @click="battle.handlePlayerAction(member, 'attack')"
+          >
             <span>{{ member.name }} [{{ member.character.level }}]</span>&nbsp;
             <span>{{ member.getStat('hp') }} / {{ member.getStatMax('hp') }}</span>
           </div>

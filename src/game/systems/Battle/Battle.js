@@ -1,7 +1,7 @@
 import { EventEmitter } from '@/game/EventEmitter.js';
 import { ProcManager } from '@/game/systems/Battle/ProcManager.js';
 
-export const BATTLE_STATE = {
+export const BATTLE_MODE = {
   RUNNING: 'running',
   AWAITING_PLAYER_INPUT: 'awaiting_player_input',
   ENDED: 'ended',
@@ -11,7 +11,7 @@ export class Battle extends EventEmitter {
   constructor(teams) {
     super();
     this.teams = teams; // teamManagers
-    this.state = BATTLE_STATE.RUNNING;
+    this.mode = BATTLE_MODE.RUNNING;
     this.memberActing = null;
     this.winner = null;
     this.isActive = true;
@@ -19,7 +19,7 @@ export class Battle extends EventEmitter {
   }
 
   update(delta) {
-    if (this.state !== BATTLE_STATE.RUNNING) return;
+    if (this.mode !== BATTLE_MODE.RUNNING) return;
 
     for (const team of this.teams) {
       if (!team.isAlive) continue;
@@ -29,7 +29,7 @@ export class Battle extends EventEmitter {
         if (member.isReadyToAct) {
           this.memberActing = member;
           if (team.name === 'Player') {
-            this.state = BATTLE_STATE.AWAITING_PLAYER_INPUT;
+            this.mode = BATTLE_MODE.AWAITING_PLAYER_INPUT;
             this.memberActing = member;
             console.log(this.memberActing);
             console.log('AWAITING PLAYER ACTION...')
@@ -42,18 +42,18 @@ export class Battle extends EventEmitter {
     }
   }
 
-  handlePlayerAction(member, actionType, target) {
-    if (this.battleState !== BATTLE_STATE.AWAITING_PLAYER_INPUT || member !== this.memberActing) {
+  handlePlayerAction(target, actionType) {
+    if (this.mode !== BATTLE_MODE.AWAITING_PLAYER_INPUT || target === this.memberActing) {
       return;
     }
 
     if (actionType === 'attack') {
-      this._performAttack(member, target);
+      this._performAttack(this.memberActing, target);
     }
 
+    this.memberActing.resetTurn();
     this.memberActing = null;
-    this.state = BATTLE_STATE.RUNNING;
-    member.resetTurn();
+    this.mode = BATTLE_MODE.RUNNING;
   }
 
   _handleAutoAction(member) {
