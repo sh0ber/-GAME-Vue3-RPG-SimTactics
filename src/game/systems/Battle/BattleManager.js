@@ -16,8 +16,6 @@ export class BattleManager extends EventEmitter {
     }
     this.battle = new Battle(teams);
     this.battle.on('Battle.end', results => this._onBattleEnd(results));
-    this.history.push(this.battle);
-    this.emit('Battle.start', this.activeBattle);
   }
 
   update(delta) {
@@ -27,7 +25,7 @@ export class BattleManager extends EventEmitter {
   _onBattleEnd(results) {
     console.log(`[BattleManager] Battle ended: ${results.winner.name} won`);
     this.battle = null;
-    this.emit('Battle.end', results);
+    this.history.push(this.battle);
     this._handleRewards(results);
   }
   

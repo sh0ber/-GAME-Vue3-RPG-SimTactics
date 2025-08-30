@@ -1,59 +1,80 @@
 import { EventEmitter } from '@/game/EventEmitter.js';
 import { ProcManager } from '@/game/systems/Battle/ProcManager.js';
 
+export const BATTLE_STATE = {
+  RUNNING: 'running',
+  AWAITING_PLAYER_INPUT: 'awaiting_player_input',
+  ENDED: 'ended',
+};
+
 export class Battle extends EventEmitter {
   constructor(teams) {
     super();
     this.teams = teams; // teamManagers
-    this.procManager = new ProcManager();
-    this.teamWinner = null;
+    this.state = BATTLE_STATE.RUNNING;
+    this.memberActing = null;
+    this.winner = null;
     this.isActive = true;
+    this.procManager = new ProcManager();
   }
 
   update(delta) {
-    if (!this.isActive) return;
-    for (const t of this.teams) {
-      if (!t.isAlive) continue;
-      for (const c of t.members) {
-        c.update(delta);
-        c.nextAttackTime -= delta;
-        if (c.nextAttackTime <= 0) {
-          this._performAttack(c);
-          // reset timer based on speed (attacks every 1/speed seconds)
-          c.nextAttackTime += 1 / (c.getStat('spd') ?? 1);
+    if (this.state !== BATTLE_STATE.RUNNING) return;
+
+    for (const team of this.teams) {
+      if (!team.isAlive) continue;
+      for (const member of team.members) {
+        member.update(delta);
+
+        if (member.isReadyToAct) {
+          if (team.name === 'Player') {
+            this.state = BATTLE_STATE.AWAITING_PLAYER_INPUT;
+            this.memberActing = member;
+            console.log(this.memberActing);
+            console.log('AWAITING PLAYER ACTION...')
+            return; // Pause the loop and wait for player input
+          } else {
+            this._handleAutoAction();
+          }
         }
       }
     }
   }
 
-  _performAttack(attacker) {
-    // pick random enemy team and target
-    const target = this._chooseRandomTarget(attacker);
-    if (!target) return;
+  handlePlayerAction(member, actionType, target) {
+    if (this.state.battleState !== BATTLE_STATE.AWAITING_PLAYER_INPUT || member !== this.state.memberActing) {
+      return;
+    }
 
-    // damage formula: attack - defense
-    const dmg = Math.max(1, (attacker.getStat('str') ?? 1) - (target.getStat('def') ?? 0));
-    target.takeDamage(dmg);
-    if (!target.isAlive) this._CheckActive();
+    if (actionType === 'attack') {
+      this._performAttack(member, target);
+    }
+
+    this.memberActing = null;
+    this.state = BATTLE_STATE.RUNNING;
+    member.resetTurn();
   }
 
-  _chooseRandomTarget(attacker) {
-    const enemyTeams = this.teams.filter(t => !t.members.includes(attacker) && t.isAlive);
-    if (!enemyTeams.length) return;
-
-    const enemyTeam = enemyTeams[Math.floor(Math.random() * enemyTeams.length)];
-    const targets = enemyTeam.getLiving();
-    if (targets.length === 0) return;
-
-    return targets[Math.floor(Math.random() * targets.length)];
+  _handleAutoAction(member) {
+    const action = member.auto(this.teams);
+    if (action.type === 'attack') {
+      this._performAttack(member, action.target);
+    }
+    member.resetTurn();
   }
 
-  _CheckActive() {
+  _performAttack(attacker, target) {
+    const dmg = Math.max(1, (attacker.character.getStat('str') ?? 1) - (target.character.getStat('def') ?? 0));
+    target.character.takeDamage(dmg);
+    if (!target.character.isAlive) this._checkActive();
+  }
+
+  _checkActive() {
     const aliveTeams = this.teams.filter(t => t.isAlive);
     if (aliveTeams.length <= 1) {
       this.isActive = false;
-      this.teamWinner = aliveTeams[0] || null;
-      this.emit('Battle.end', { winner: this.teamWinner });
+      this.winner = aliveTeams[0] || null;
+      this.emit('Battle.end', { winner: this.winner });
     }
   }
 }

@@ -42,7 +42,7 @@ export const useGameStore = defineStore("game", () => {
   start();
 
   return {
-    game,       // full simulation engine
+    game,
     start,
     stop,
   };
