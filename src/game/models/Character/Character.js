@@ -38,7 +38,7 @@ export class Character extends EventEmitter {
     this.statManager.change('hp', -amount);
     if (!this.isAlive) {
       console.log(`${this.name} died!`);
-      this.emit('Character.Death');
+      this.emit('Character.death');
     }
   }
 }

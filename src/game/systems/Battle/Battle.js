@@ -1,9 +1,10 @@
+import { EventEmitter } from '@/game/EventEmitter.js';
 import { ProcManager } from '@/game/systems/Battle/ProcManager.js';
 
-export class Battle {
+export class Battle extends EventEmitter {
   constructor(teams) {
-    // Wrap all characters in TeamMember
-    this.teams = teams;
+    super();
+    this.teams = teams; // teamManagers
     this.procManager = new ProcManager();
     this.teamWinner = null;
     this.isActive = true;
@@ -47,22 +48,12 @@ export class Battle {
     return targets[Math.floor(Math.random() * targets.length)];
   }
 
-  _checkBattleEnd() {
-    const aliveTeams = this.teams.filter(t => t.isAlive);
-    if (aliveTeams.length <= 1) {
-      this.isActive = false;
-      this.teamWinner = aliveTeams[0] || null;
-      console.log(`${this.teamWinner.name} won`);
-    }
-  }
-
   _CheckActive() {
     const aliveTeams = this.teams.filter(t => t.isAlive);
     if (aliveTeams.length <= 1) {
-      // Battle over, only 1 team left
       this.isActive = false;
       this.teamWinner = aliveTeams[0] || null;
-      console.log(`${this.teamWinner.name} won`);
+      this.emit('Battle.end', { winner: this.teamWinner });
     }
   }
 }

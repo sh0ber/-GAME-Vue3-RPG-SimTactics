@@ -1,7 +1,9 @@
+import { EventEmitter } from '@/game/EventEmitter.js';
 import { Battle } from '@/game/systems/Battle/Battle.js';
 
-export class BattleManager {
+export class BattleManager extends EventEmitter {
   constructor(game) {
+    super();
     this.game = game;
     this.battle = null;
     this.history = [];
@@ -13,10 +15,24 @@ export class BattleManager {
       return;
     }
     this.battle = new Battle(teams);
+    this.battle.on('Battle.end', results => this._onBattleEnd(results));
     this.history.push(this.battle);
+    this.emit('Battle.start', this.activeBattle);
   }
 
   update(delta) {
     this.battle?.update(delta);
+  }
+
+  _onBattleEnd(results) {
+    console.log(`[BattleManager] Battle ended: ${results.winner.name} won`);
+    this.battle = null;
+    this.emit('Battle.end', results);
+    this._handleRewards(results);
+  }
+  
+  _handleRewards(results) {
+    // Logic to distribute XP, items, etc.
+    console.log('[BattleManager] Processing post-battle rewards.');
   }
 }

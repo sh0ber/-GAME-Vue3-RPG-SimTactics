@@ -15,7 +15,7 @@ export class TeamManager extends EventEmitter {
   }
 
   addMember(character) {
-    character.on('Character.Death', () => this._onCharacterDeath());
+    character.on('Character.death', () => this._onCharacterDeath());
     const m = new TeamMember(character);
     this.members.push(m);
     return m;
@@ -47,8 +47,8 @@ export class TeamManager extends EventEmitter {
 
   _onCharacterDeath() {
     if (!this.isAlive) {
-      console.log(`Team ${this.name} has been defeated.`);
-      this.emit('Team.Death');
+      console.log(`[TeamManager] Team ${this.name} has been defeated`);
+      this.emit('Team.death');
     }
   }
 }
