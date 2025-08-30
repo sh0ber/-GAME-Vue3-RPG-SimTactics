@@ -8,7 +8,7 @@ const { battleManager } = game;
 
 const test = () => {
   // Create test characters
-  const playerChar = new Character({ name: 'Bopsky', stats: { hp: 100 } });
+  const playerChar = new Character({ name: 'Bopsky', stats: { hp: 100, str: 5 } });
   const goblin = new Character({ name: 'Goblin King', stats: { hp: 100 } });
 
   // Create team POJOs
@@ -33,7 +33,7 @@ const test = () => {
         <div v-for="team in game.battleManager.battle.teams">
           <h3>{{  team.name  }}</h3>
           <div v-for="member in team.members">
-            <span>{{ member.name }} [{{ member.level }}]</span>&nbsp;
+            <span>{{ member.name }} [{{ member.character.level }}]</span>&nbsp;
             <span>{{ member.getStat('hp') }} / {{ member.getStatMax('hp') }}</span>
           </div>
         </div>

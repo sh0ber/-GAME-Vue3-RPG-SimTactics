@@ -7,7 +7,6 @@ export class TeamMember {
 
   // Convenience (Character)
   get name() { return this.character.name; }
-  get level() { return this.character.level; }
   get isAlive() { return this.character.isAlive; }
   getStat(stat) { return this.character.getStat(stat); }
   getStatMax(stat) { return this.character.getStatMax(stat); }
