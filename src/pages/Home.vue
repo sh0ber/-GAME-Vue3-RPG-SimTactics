@@ -16,7 +16,7 @@ const test = () => {
 
   playerTeam.addRandomMember(2);
   enemyTeam.addRandomMember(2);
-
+  
   // Start battle
   store.game.battleManager.start([playerTeam, enemyTeam]);
 }
@@ -26,14 +26,13 @@ const test = () => {
   <div class="page">
     <div><input type="number" v-model="store.game.timeScale" /> {{ store.game.timeScale }}</div>
     <div><button @click="test">Test</button></div>
-    <template v-if="store.game.battleManager?.battle">
-      <div>Active? {{ store.game.battleManager.isActive }}</div>
+    <template v-if="store.game.battleManager.battle">
       <div>Turn: {{ store.game.battleManager.battle.memberActing?.character.name }}</div>
       <div style="display: flex; gap: 0 1rem;">
         <div v-for="team in store.game.battleManager.battle.teams">
           <h3>{{  team.name  }}</h3>
-          -{{  store.game.battleManager.battle.memberActing?.id }}-
           <div v-for="member in team.members" class="member" :class="{ acting: member.id === store.game.battleManager.battle.memberActing?.id }">
+            <span>{{ member.id }}</span>
             <span>{{ member.name }} [{{ member.character.level }}]</span>&nbsp;
             <span>{{ member.getStat('hp') }} / {{ member.getStatMax('hp') }}</span>
           </div>

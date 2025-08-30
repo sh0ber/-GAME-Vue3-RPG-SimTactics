@@ -1,6 +1,6 @@
 export class TeamMember {
   constructor(character) {
-    this.id = crypto.randomUUID;
+    this.id = crypto.randomUUID();
     this.character = character;
     this.nextAttackTime = 0;
     this.buffManager = {};
