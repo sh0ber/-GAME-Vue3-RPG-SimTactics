@@ -1,9 +1,10 @@
+import { reactive } from 'vue';
 import { defineStore } from "pinia";
 import { FPS } from '@/game/config.js';
 import { Game } from "@/game/Game.js";
 
 export const useGameStore = defineStore("game", () => {
-  const game = new Game();
+  const game = reactive(new Game());
   const tickStep = 1 / FPS; // fixed timestep
 
   let lastTime;

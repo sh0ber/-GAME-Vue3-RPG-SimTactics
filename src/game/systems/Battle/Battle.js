@@ -1,4 +1,3 @@
-import { ref } from 'vue';
 import { EventEmitter } from '@/game/EventEmitter.js';
 import { ProcManager } from '@/game/systems/Battle/ProcManager.js';
 
@@ -13,7 +12,7 @@ export class Battle extends EventEmitter {
     super();
     this.teams = teams; // teamManagers
     this.state = BATTLE_STATE.RUNNING;
-    this.memberActing = ref(null);
+    this.memberActing = null;
     this.winner = null;
     this.isActive = true;
     this.procManager = new ProcManager();
@@ -28,10 +27,11 @@ export class Battle extends EventEmitter {
         member.update(delta);
 
         if (member.isReadyToAct) {
+          this.memberActing = member;
           if (team.name === 'Player') {
             this.state = BATTLE_STATE.AWAITING_PLAYER_INPUT;
-            this.memberActing.value = member;
-            console.log(this.memberActing.value);
+            this.memberActing = member;
+            console.log(this.memberActing);
             console.log('AWAITING PLAYER ACTION...')
             return; // Pause the loop and wait for player input
           } else {
@@ -43,7 +43,7 @@ export class Battle extends EventEmitter {
   }
 
   handlePlayerAction(member, actionType, target) {
-    if (this.battleState !== BATTLE_STATE.AWAITING_PLAYER_INPUT || member !== this.memberActing.value) {
+    if (this.battleState !== BATTLE_STATE.AWAITING_PLAYER_INPUT || member !== this.memberActing) {
       return;
     }
 
@@ -51,7 +51,7 @@ export class Battle extends EventEmitter {
       this._performAttack(member, target);
     }
 
-    this.memberActing.value = null;
+    this.memberActing = null;
     this.state = BATTLE_STATE.RUNNING;
     member.resetTurn();
   }

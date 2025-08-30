@@ -9,9 +9,6 @@ export class Character extends EventEmitter {
     this.name = base.name ?? "Unnamed";
     this.level = base.level ?? 1;
     this.statManager = new StatManager(this);
-
-    // Make all characters HP reactive for UI
-    this.statManager.stats['hp'] = reactive(this.statManager.stats['hp']);
   }
 
   get isAlive() {
