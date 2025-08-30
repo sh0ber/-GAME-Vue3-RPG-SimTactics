@@ -1,4 +1,3 @@
-import { reactive } from 'vue';
 import { EventEmitter } from '@/game/EventEmitter.js';
 import { StatManager } from '@/game/models/Character/StatManager.js';
 

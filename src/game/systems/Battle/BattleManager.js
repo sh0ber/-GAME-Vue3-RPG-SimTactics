@@ -1,4 +1,3 @@
-import { reactive } from 'vue';
 import { EventEmitter } from '@/game/EventEmitter.js';
 import { Battle } from '@/game/systems/Battle/Battle.js';
 
@@ -15,7 +14,7 @@ export class BattleManager extends EventEmitter {
       console.error('[BattleManager] Need at least 2 teams to start a battle');
       return;
     }
-    const battle = reactive(new Battle(teams));
+    const battle = new Battle(teams);
     battle.on('Battle.end', results => this._onBattleEnd(results));
     this.battle = battle;
   }
