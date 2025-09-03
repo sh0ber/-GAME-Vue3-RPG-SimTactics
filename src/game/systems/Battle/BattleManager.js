@@ -8,4 +8,8 @@ export class BattleManager extends EventEmitter {
     this.battle = null;
     this.history = [];
   }
+
+  update(delta) {
+    
+  }
 }
