@@ -1,5 +1,5 @@
 import { Player } from '@/game/models/Player.js';
-import { BattleManager } from '@/game/systems/battle/BattleManager.js';
+import { BattleManager } from '@/game/systems/Battle/BattleManager.js';
 
 export class Game {
   constructor() {

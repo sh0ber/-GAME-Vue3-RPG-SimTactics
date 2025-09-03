@@ -1,5 +1,5 @@
 import { EventEmitter } from '@/game/EventEmitter.js';
-import { StatManager } from '@/game/models/character/StatManager.js';
+import { StatManager } from '@/game/models/Character/StatManager.js';
 
 export class Character extends EventEmitter {
   constructor(base) {
