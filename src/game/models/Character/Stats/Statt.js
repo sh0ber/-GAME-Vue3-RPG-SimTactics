@@ -1,13 +1,13 @@
 import { ModifierManager } from '@/game/models/character/stats/ModifierManager.js';
 
 export class Stat {
-  constructor(raw, baseFn = null) {
+  constructor(raw, derivedFn = () => 0) {
     this.raw = raw; // Base value from JSON
     this.base = raw;
     this.cached = raw;
     this.isDirty = true;
     this.modifiers = new ModifierManager();
-    this.baseFn = baseFn || (() => this.raw);
+    this.derivedFn = derivedFn;
     this.subscribers = new Set(); // Stats that derive from this one
   }
 
@@ -26,8 +26,10 @@ export class Stat {
   }
 
   recalculate() { 
-    this.base = this.baseFn();
-    this.cached = this.modifiers.calculate(this.base);
+    const derived = this.derivedFn?.() ?? 0;
+    const preModified = this.base + derived;
+    const final = this.modifiers.calculate(preModified);
+    this.cached = final;
     this.isDirty = false;
   }
 

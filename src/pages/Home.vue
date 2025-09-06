@@ -18,6 +18,9 @@ const WildHead2 = {
     { stat: 'str', type: 'F', amount: 1},
     { stat: 'str', type: 'M', amount: 1.4},
     { stat: 'str', type: 'M', amount: 1.1},
+    { stat: 'dex', type: 'F', amount: 4},
+    { stat: 'luk', type: 'F', amount: 4},
+    { stat: 'crit', type: 'F', amount: 2},
   ]
 }
 c.equipItem(WildHead1);
