@@ -35,7 +35,8 @@ export class Character extends EventEmitter {
     }
   }
 
-  equipItem(item, slot) {
+  equipItem(item) {
+    const { slot } = item;
     if (this.equipment.has(slot)) {
       this.unequipItem(slot);
     }

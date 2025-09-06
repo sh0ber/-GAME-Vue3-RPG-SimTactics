@@ -3,8 +3,23 @@ import { useGameStore } from '@/store/game.js';
 const { game, start, stop } = useGameStore();
 
 const c = game.player.newCharacter({ stats: { hp: 500, str: 10 } });
-c.equipItem({ name: 'Wild Head', modifiers: [{ stat: 'str', type: 'F', amount: 5}] }, 'head');
-c.equipItem({ name: 'Wild Head', modifiers: [{ stat: 'str', type: 'P', amount: 0.1}] }, 'head');
+const WildHead1 = {
+  name: 'Wild Head (1)',
+  slot: 'head',
+  modifiers: [
+    { stat: 'str', type: 'F', amount: 5},
+    { stat: 'str', type: 'P', amount: 0.2},
+  ]
+}
+const WildHead2 = {
+  name: 'Wild Head (2)',
+  slot: 'head',
+  modifiers: [
+    { stat: 'str', type: 'M', amount: 1.3}
+  ]
+}
+c.equipItem(WildHead1);
+c.equipItem(WildHead2);
 </script>
 
 <template>
