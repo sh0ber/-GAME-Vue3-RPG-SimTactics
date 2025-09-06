@@ -2,6 +2,7 @@ import { EventEmitter } from '@/game/EventEmitter.js';
 import { Stat } from '@/game/models/character/stats/Statt.js';
 import { Resource } from '@/game/models/character/stats/Resource.js';
 import { StatModifier } from '@/game/models/character/stats/StatModifier.js';
+import { characterStatSchema } from '@/game/models/character/characterStatSchema.js';
 
 export class StatManager extends EventEmitter {
   /**
@@ -12,23 +13,29 @@ export class StatManager extends EventEmitter {
     this.character = character;
     this.stats = {};
 
-    // this.registerEventHandlers();
-
     this._init(character);
   }  
 
   _init(character) {
     const baseStats = character.base.stats;
-    const resources = ['hp', 'mp'];
-    const attributes = ['str', 'dex', 'int', 'wis', 'con', 'def', 'cha', 'luk', 'acc', 'spd'];
-    const attributes2 = ['dodge', 'crit', 'critdam', 'reflect'];
-    
-    resources.forEach(resource => {
-      this.stats[resource] = new Resource(baseStats[resource] ?? 1);
-    })
-    attributes.forEach(attribute => {
-      this.stats[attribute] = new Stat(baseStats[attribute] ?? 1);
-    })
+
+    // Create all stats
+    for (const statId in characterStatSchema) {
+      const config = characterStatSchema[statId];
+      const rawBaseValue = baseStats[statId] ?? 1;
+      const customFn = config.fn ? () => config.fn(this.stats) : null;
+      if (config.type === 'Resource') {
+        this.stats[statId] = new Resource(rawBaseValue, customFn);
+      } else {
+        this.stats[statId] = new Stat(rawBaseValue, customFn);
+      }
+    }
+
+    // Wire dependencies
+    for (const statId in characterStatSchema) {
+      const config = characterStatSchema[statId];
+      config.dependencies?.forEach(dep => this.stats[dep].subscribe(this.stats[statId]));
+    }
   }
 
   get isAlive() {
@@ -86,22 +93,4 @@ export class StatManager extends EventEmitter {
       stat.removeModifiersBySource(source);
     });
   }
-
-  // ----------------- Event Hooks -----------------
-  /*
-  registerEventHandlers() {
-    this.character.eventManager.on('Stat.Change', ({ stat, amount, source }) => {
-      const before = this.getCurrent(stat);
-      this.stats[stat].change(amount);
-      const after = this.getCurrent(stat);
-
-      if (after !== before) {
-        this.character.eventManager.trigger('Stat.Changed', {
-          stat, before, after, delta: after - before, source
-        });
-        console.log(`${this.character.name}'s ${stat} changed by ${after - before}`);
-      }
-    });
-  }
-  */
 }
