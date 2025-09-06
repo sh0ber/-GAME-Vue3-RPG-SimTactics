@@ -33,13 +33,13 @@ export class Stat {
     this.isDirty = false;
   }
 
-  addMod(mod) {
+  addModifier(mod) {
     this.mods.set(mod);
     this.invalidate();
   }
 
-  deleteMod(source) {
-    this.mods.delete(source);
+  removeModifiersBySource(source) {
+    this.mods = this.mods.filter(mod => mod.source !== source);
     this.invalidate();
   }
 

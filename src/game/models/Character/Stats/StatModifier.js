@@ -9,7 +9,6 @@ export class StatModifier {
     if (!source || !type || amount === undefined) {
       throw new Error('Modifier requires source, type, and amount.');
     }
-
     this.source = source;
     this.type = type;
     this.amount = amount;
