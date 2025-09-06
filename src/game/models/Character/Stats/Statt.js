@@ -1,4 +1,4 @@
-import { Modifiers } from '@/game/models/Stats/Modifiers.js';
+import { StatModifiers } from '@/game/models/character/stats/StatModifiers.js';
 
 export class Stat {
   constructor(raw, dependencies = [], customBaseFn = null) {
@@ -6,7 +6,7 @@ export class Stat {
     this.base = raw;
     this.cached = raw;
     this.isDirty = true;
-    this.mods = new Modifiers();
+    this.mods = new StatModifiers();
     this.customBaseFn = customBaseFn;
     this.subscribers = new Set(); // Stats that derive from this one
 
