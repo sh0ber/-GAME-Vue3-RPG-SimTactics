@@ -1,4 +1,4 @@
-import { StatModifiers } from '@/game/models/character/stats/StatModifiers.js';
+import { ModifierManager } from '@/game/models/character/stats/ModifierManager.js';
 
 export class Stat {
   constructor(raw, dependencies = [], customBaseFn = null) {
@@ -6,7 +6,7 @@ export class Stat {
     this.base = raw;
     this.cached = raw;
     this.isDirty = true;
-    this.mods = new StatModifiers();
+    this.modifiers = new ModifierManager();
     this.customBaseFn = customBaseFn;
     this.subscribers = new Set(); // Stats that derive from this one
 
@@ -29,17 +29,17 @@ export class Stat {
 
   recalculate() { 
     this.base = this.customBaseFn ? this.customBaseFn() : this.raw; // Derived stats may have custom
-    this.cached = this.mods.calculate(this.base);
+    this.cached = this.modifiers.calculate(this.base);
     this.isDirty = false;
   }
 
-  addModifier(mod) {
-    this.mods.set(mod);
+  addModifier(modifier) {
+    this.modifiers.set(modifier);
     this.invalidate();
   }
 
   removeModifiersBySource(source) {
-    this.mods = this.mods.filter(mod => mod.source !== source);
+    this.modifiers.removeModifiersBySource(source);
     this.invalidate();
   }
 

@@ -37,15 +37,17 @@ export class StatManager extends EventEmitter {
 
   // ----------------- Stat Access -----------------
   get(statId) {
+    // Only for resource type stats but fallback for regular
     const stat = this.stats[statId];
     if (!stat) throw new Error(`Stat ${statId} not found`);
-    return stat.current ?? stat.max; // Non-resource Stats don't have `current`
+    return stat.current ?? stat.value;
   }
 
   getMax(statId) {
+    // Max stat value
     const stat = this.stats[statId];
     if (!stat) throw new Error(`Stat ${statId} not found`);
-    return stat.max;
+    return stat.value;
   }
 
   // ----------------- Resource changes -----------------
@@ -71,7 +73,7 @@ export class StatManager extends EventEmitter {
   addModifiersBySource(source) {
     source.modifiers.forEach(modData => {
       const stat = this.stats[modData.stat];
-      stat.addModifier(new StatModifier({ ...mod, source }));
+      stat.addModifier(new StatModifier({ ...modData, source }));
     });
   }
 

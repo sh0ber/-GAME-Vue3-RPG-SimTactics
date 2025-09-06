@@ -1,5 +1,5 @@
 import { EventEmitter } from '@/game/EventEmitter.js';
-import { StatManager } from '@/game/models/character/StatManager.js';
+import { StatManager } from '@/game/models/character/stats/StatManager.js';
 
 export class Character extends EventEmitter {
   constructor(base) {
@@ -36,19 +36,20 @@ export class Character extends EventEmitter {
   }
 
   equipItem(item, slot) {
-    if (this.equipment[slot]) {
+    if (this.equipment.has(slot)) {
       this.unequipItem(slot);
     }
+    this.equipment.set(slot, item);
     this.statManager.addModifiersBySource(item);
-    console.log(`Equipped ${item.name}. Strength is now ${this.stats.getStat('strength').getFinalValue()}`);
+    console.log(`Equipped ${item.name}. Strength is now ${this.statManager.get('str')}`);
   }
 
   unequipItem(slot) {
-    const item = this.equipment[slot];
+    const item = this.equipment.get(slot);
     if (item) {
       this.statManager.removeModifiersBySource(item);
-      delete this.equippedItems[slot];
-      console.log(`Unequipped ${item.name}. Strength is now ${this.stats.getStat('strength').getFinalValue()}`);
+      this.equipment.delete('slot');
+      console.log(`Unequipped ${item.name}. Strength is now ${this.statManager.get('str')}`);
     }
   }
 }
