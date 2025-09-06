@@ -22,12 +22,8 @@ export class Character extends EventEmitter {
     return this.statManager.get(statId);
   }
 
-  getStatMax(statId) {
-    return this.statManager.getMax(statId);
-  }
-
-  changeStat(statId, amount) {
-    this.statManager.change(statId, amount);
+  heal(amount) {
+    this.statManager.change('hp', amount);
   }
 
   takeDamage(amount) { // Convenience for Battle manager and elsewhere

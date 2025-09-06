@@ -31,6 +31,10 @@ export class StatManager extends EventEmitter {
     })
   }
 
+  get isAlive() {
+    return this.stats['hp'] > 0;
+  }
+
   // ----------------- Stat Access -----------------
   get(statId) {
     const stat = this.stats[statId];
@@ -49,6 +53,10 @@ export class StatManager extends EventEmitter {
     const stat = this.stats[statId];
     if (!stat) throw new Error(`Stat ${statId} not found`);
     stat.change(delta); // apply the delta, no event
+    if (!this.isAlive) {
+      console.log(`${this.name} died!`);
+      this.emit('Character.death');
+    }
   }
 
   restore(statId) {

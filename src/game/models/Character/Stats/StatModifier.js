@@ -2,7 +2,7 @@ export class StatModifier {
   /**
    * @param {object} modifierData - The data for the modifier.
    * @param {string} modifierData.source - A unique identifier for the source of the modifier (e.g., an item ID).
-   * @param {string} modifierData.type - The type of modifier ('A', 'M', 'MM').
+   * @param {string} modifierData.type - The type of modifier ('F', 'P', 'M') Flat, Percent, Multiplier
    * @param {number} modifierData.amount - The numerical value of the modifier.
    */
   constructor({ source, type, amount }) {
