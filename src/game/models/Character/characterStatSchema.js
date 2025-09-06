@@ -7,6 +7,8 @@ export const characterStatSchema = {
   wis: { type: 'Stat' },
   vit: { type: 'Stat' },
   agi: { type: 'Stat' },
+  per: { type: 'Stat' },
+  wil: { type: 'Stat' },
   luk: { type: 'Stat' },
   acc: { type: 'Stat' },  // Should be derived
   spd: { type: 'Stat' },  // Should be derived
@@ -14,22 +16,32 @@ export const characterStatSchema = {
   // Derived
   hp: {
     type: 'Resource',
-    dependencies: ['vit'],
-    fn: (stats) => stats.vit.value * 0.5 + stats.luk.value * 0.2
+    dependencies: ['vit', 'wil', 'luk'],
+    fn: stats => stats.vit.value * 10 + stats.wil.value * 2 + stats.luk.value * 1
   },
   mp: {
     type: 'Resource',
-    dependencies: ['int', 'wis'],
-    fn: (stats) => stats.dex.value * 0.5 + stats.luk.value * 0.2
+    dependencies: ['int', 'wis', 'wil'],
+    fn: stats => stats.int.value * 5 + stats.wis.value * 3 + stats.wil.value * 1
+  },
+  acc: {
+    type: 'Stat',
+    dependencies: ['dex', 'per', 'luk'],
+    fn: stats => stats.dex.value * 0.7 + stats.per.value * 0.3 + stats.luk.value * 0.1
+  },
+  spd: {
+    type: 'Stat',
+    dependencies: ['agi', 'dex', 'vit'],
+    fn: stats => stats.agi.value * 0.6 + stats.dex.value * 0.3 + stats.vit.value * 0.1
   },
   crit: {
     type: 'Stat',
     dependencies: ['dex', 'luk'],
-    fn: (stats) => stats.dex.value * 0.5 + stats.luk.value * 0.2
+    fn: stats => stats.dex.value * 0.5 + stats.luk.value * 0.5
   },
   dodge: {
     type: 'Stat',
-    dependencies: ['agi', 'vit'],
-    fn: (stats) => stats.dex.value * 0.8
+    dependencies: ['agi', 'dex', 'per'],
+    fn: stats => stats.agi.value * 0.6 + stats.dex.value * 0.2 + stats.per.value * 0.2
   }
 };

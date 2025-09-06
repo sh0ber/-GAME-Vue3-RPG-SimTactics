@@ -12,29 +12,33 @@ export class StatManager extends EventEmitter {
     super();
     this.character = character;
     this.stats = {};
-
     this._init(character);
   }  
 
   _init(character) {
     const baseStats = character.base.stats;
 
-    // Create all stats
+    // 1. Create all stats
     for (const statId in characterStatSchema) {
       const config = characterStatSchema[statId];
       const rawBaseValue = baseStats[statId] ?? 1;
-      const customFn = config.fn ? () => config.fn(this.stats) : null;
+      const baseFn = config.fn ? () => config.fn(this.stats) : null; // Derived have custom calcs
       if (config.type === 'Resource') {
-        this.stats[statId] = new Resource(rawBaseValue, customFn);
+        this.stats[statId] = new Resource(rawBaseValue, baseFn);
       } else {
-        this.stats[statId] = new Stat(rawBaseValue, customFn);
+        this.stats[statId] = new Stat(rawBaseValue, baseFn);
       }
     }
 
-    // Wire dependencies
+    // 2. Wire dependencies for derived stats (The 2nd pass means no need for ordering)
     for (const statId in characterStatSchema) {
       const config = characterStatSchema[statId];
       config.dependencies?.forEach(dep => this.stats[dep].subscribe(this.stats[statId]));
+    }
+
+    // 3. Only now set resource "current" which requires finished dependencies
+    for (const stat of Object.values(this.stats)) {
+      if (stat instanceof Resource) stat.restore();
     }
   }
 

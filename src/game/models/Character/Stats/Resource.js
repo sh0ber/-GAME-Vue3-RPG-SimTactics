@@ -3,7 +3,7 @@ import { Stat } from '@/game/models/character/stats/Statt.js';
 export class Resource extends Stat {
   constructor(...args) {
     super(...args); // forwards all arguments to Stat
-    this.current = this.value;
+    this.current = null;
   }
 
   recalculate() {
