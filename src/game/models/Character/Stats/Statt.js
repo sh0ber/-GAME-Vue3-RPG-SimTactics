@@ -59,9 +59,10 @@ export class Stat extends EventEmitter {
     this.invalidate();
   }
 
-  subscribe(subscriber) {
-    // Allow other stats to register themselves as dependents here
-    this.subscribers.add(subscriber);
-    return () => this.subscribers.delete(subscriber);
+  subscribeDependent(dependent) {
+    // Allow other stats to register themselves as dependents
+    // Intentionally not using the Event Manager because this should remain narrow focused
+    this.subscribers.add(dependent);
+    return () => this.subscribers.delete(dependent);
   }
 }
