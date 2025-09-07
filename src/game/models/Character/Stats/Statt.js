@@ -8,31 +8,27 @@ export class Stat extends EventEmitter {
     this.levelBonus = 0; // Contribution from level
     this.permBonus = 0; // Contribution from things like +1 permanent items
     this.derivedBonus = 0; // Contribution from other stats
-    this.cached = raw; // Final value
-    this.isModifiersStale = true; // Any change to any sub-value means modifiers need recalc
-    this.modifiers = new ModifierManager();
     this.derivedFn = derivedFn;
-    this.subscribers = new Set(); // Stats that derive from this one
-  }
-
-  get base() { // final value prior to modifiers
-    return this.raw + this.levelBonus + this.permBonus + this.derivedBonus;
+    this.modifiers = new ModifierManager();
+    this._isModifiersStale = true; // Any change to any sub-value means modifiers need recalc
+    this._cached = raw; // Final value
+    this._subscribers = new Set(); // Stats that derive from this one
   }
 
   get value() { // final value
-    if (this.isModifiersStale) {
+    if (this._isModifiersStale) {
       this.recalculateFinal();
     }
-    return this.cached;
+    return this._cached;
+  }
+
+  get _base() { // final value prior to modifiers
+    return this.raw + this.levelBonus + this.permBonus + this.derivedBonus;
   }
 
   invalidate() {
-    if (!this.isModifiersStale) {
-      this.isModifiersStale = true;
-      // If this stat changes, invalidate its dependencies
-      // Same thing will happen if this stat's dependents change and propagate to this one
-      this.subscribers.forEach(subscriber => subscriber.recalculateDerived());
-    }
+    // When any layer contribution changes, modifiers require calculation
+    this._isModifiersStale = true;
   }
 
   recalculateDerived() {
@@ -41,11 +37,13 @@ export class Stat extends EventEmitter {
   }
 
   recalculateFinal() {
-    const oldValue = this.cached;
-    this.cached = this.modifiers.calculate(this.base);
-    this.isModifiersStale = false;
-    if (oldValue !== this.cached) {
-      this.emit('Stat.changed', { stat: this, oldValue, newValue: this.cached });
+    const oldValue = this._cached;
+    this._cached = this.modifiers.calculate(this._base);
+    this._isModifiersStale = false;
+    if (oldValue !== this._cached) {
+      this.emit('Stat.changed', { stat: this, oldValue, newValue: this._cached });
+      // Same thing will happen if this stat's dependents change and propagate to this one
+      this._subscribers.forEach(sub => sub.recalculateDerived());
     }
   }
 
@@ -62,7 +60,7 @@ export class Stat extends EventEmitter {
   subscribeDependent(dependent) {
     // Allow other stats to register themselves as dependents
     // Intentionally not using the Event Manager because this should remain narrow focused
-    this.subscribers.add(dependent);
-    return () => this.subscribers.delete(dependent);
+    this._subscribers.add(dependent);
+    return () => this._subscribers.delete(dependent);
   }
 }

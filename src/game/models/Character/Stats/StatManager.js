@@ -48,7 +48,7 @@ export class StatManager extends EventEmitter {
     stat.change(delta); // apply the delta, no event
     if (!this.isAlive) {
       console.log(`${this.name} died!`);
-      this.emit('Character.death');
+      this.emit('HP.zero');
     }
   }
 

@@ -39,7 +39,7 @@ export const characterStatSchema = {
   },
   critd: {
     type: 'Stat',
-    dependencies: ['dex', 'luk'],
+    dependencies: ['luk', 'str'],
     fn: stats => stats.luk.value * 0.7 + stats.str.value * 0.3
   },
   dodge: {
