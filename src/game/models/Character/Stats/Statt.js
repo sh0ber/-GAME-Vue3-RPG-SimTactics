@@ -3,34 +3,44 @@ import { ModifierManager } from '@/game/models/character/stats/ModifierManager.j
 export class Stat {
   constructor(raw, derivedFn = () => 0) {
     this.raw = raw; // Base value from JSON
-    this.base = raw;
-    this.cached = raw;
-    this.isDirty = true;
+    this.levelBonus = 0; // Contribution from level
+    this.permBonus = 0; // Contribution from things like +1 permanent items
+    this.derivedBonus = 0; // Contribution from other stats
+    this.cached = raw; // Final value
+    this.isModifiersStale = true; // Any change to any sub-value means modifiers need recalc
     this.modifiers = new ModifierManager();
     this.derivedFn = derivedFn;
     this.subscribers = new Set(); // Stats that derive from this one
   }
 
-  get value() {
-    if (this.isDirty) {
-      this.recalculate();
+  get base() { // final value prior to modifiers
+    return this.raw + this.levelBonus + this.permBonus + this.derivedBonus;
+  }
+
+  get value() { // final value
+    if (this.isModifiersStale) {
+      this.recalculateModifiers();
     }
     return this.cached;
   }
 
   invalidate() {
-    if (!this.isDirty) {
-      this.isDirty = true;
-      this.subscribers.forEach(subscriber => subscriber.invalidate());
+    if (!this.isModifiersStale) {
+      this.isModifiersStale = true;
+      // If this stat changes, invalidate its dependencies
+      // Same thing will happen if this stat's dependents change and propagate to this one
+      this.subscribers.forEach(subscriber => subscriber.recalculateDerived());
     }
   }
 
-  recalculate() { 
-    const derived = this.derivedFn?.() ?? 0;
-    const preModified = this.base + derived;
-    const final = this.modifiers.calculate(preModified);
-    this.cached = final;
-    this.isDirty = false;
+  recalculateDerived() {
+    this.derivedBonus = this.derivedFn?.() ?? 0; // Called immediately when a dependency changes
+    this.invalidate();
+  }
+
+  recalculateModifiers() { 
+    this.cached = this.modifiers.calculate(this.base); // Recalculate modifiers
+    this.isModifiersStale = false;
   }
 
   addModifier(modifier) {
@@ -43,7 +53,8 @@ export class Stat {
     this.invalidate();
   }
 
-  subscribe(subscriber) { // Allow other derived stats to register themselves as dependents
+  subscribe(subscriber) {
+    // Allow other stats to register themselves as dependents here
     this.subscribers.add(subscriber);
     return () => this.subscribers.delete(subscriber);
   }

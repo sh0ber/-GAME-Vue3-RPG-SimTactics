@@ -36,7 +36,12 @@ export class StatManager extends EventEmitter {
       config.dependencies?.forEach(dep => this.stats[dep].subscribe(this.stats[statId]));
     }
 
-    // 3. Only now set resource "current" which requires finished dependencies
+    // 3. Now actually trigger the initial dependency calculation because it is not a lazy calc
+    for (const stat of Object.values(this.stats)) {
+       stat.recalculateDerived();
+    }
+
+    // 4.  Now set resource "current" which requires finished dependencies
     for (const stat of Object.values(this.stats)) {
       if (stat instanceof Resource) stat.restore();
     }
