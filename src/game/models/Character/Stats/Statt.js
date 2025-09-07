@@ -1,7 +1,9 @@
+import { EventEmitter } from '@/game/EventEmitter.js';
 import { ModifierManager } from '@/game/models/character/stats/ModifierManager.js';
 
-export class Stat {
+export class Stat extends EventEmitter {
   constructor(raw, derivedFn = () => 0) {
+    super();
     this.raw = raw; // Base value from JSON
     this.levelBonus = 0; // Contribution from level
     this.permBonus = 0; // Contribution from things like +1 permanent items
@@ -19,7 +21,7 @@ export class Stat {
 
   get value() { // final value
     if (this.isModifiersStale) {
-      this.recalculateModifiers();
+      this.recalculateFinal();
     }
     return this.cached;
   }
@@ -38,9 +40,13 @@ export class Stat {
     this.invalidate();
   }
 
-  recalculateModifiers() { 
-    this.cached = this.modifiers.calculate(this.base); // Recalculate modifiers
+  recalculateFinal() {
+    const oldValue = this.cached;
+    this.cached = this.modifiers.calculate(this.base);
     this.isModifiersStale = false;
+    if (oldValue !== this.cached) {
+      this.emit('Stat.changed', { stat: this, oldValue, newValue: this.cached });
+    }
   }
 
   addModifier(modifier) {

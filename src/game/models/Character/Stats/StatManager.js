@@ -92,17 +92,18 @@ export class StatManager extends EventEmitter {
   }
 
   _applySavedModifiers(savedModifiers) {
-    for (const statId in characterStatSchema) {
+    const modifiersByStat = savedModifiers.reduce((acc, mod) => {
+      (acc[mod.stat] = acc[mod.stat] || []).push(mod);
+      return acc;
+    }, {});
+
+    for (const statId in modifiersByStat) {
       const stat = this.stats[statId];
-
-      // Filter modifiers for this stat
-      const modsForStat = savedModifiers.filter(mod => mod.stat === statId);
-
-      modsForStat.forEach(mod => {
-        // Ensure each modifier has a unique source object
-        const sourceObj = mod.source || {};
-        stat.modifiers.set({ ...mod, source: sourceObj });
-      });
+      if (stat) { // Check if stat exists
+        modifiersByStat[statId].forEach(mod => {
+          stat.addModifier(new StatModifier({ ...mod, source: mod.source || {} }));
+        });
+      }
     }
   }
 
