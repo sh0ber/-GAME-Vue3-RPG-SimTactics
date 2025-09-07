@@ -32,10 +32,15 @@ export const characterStatSchema = {
     dependencies: ['agi', 'dex', 'vit'],
     fn: stats => stats.agi.value * 0.6 + stats.dex.value * 0.3 + stats.vit.value * 0.1
   },
-  crit: {
+  critc: {
     type: 'Stat',
     dependencies: ['dex', 'luk'],
     fn: stats => stats.dex.value * 0.5 + stats.luk.value * 0.5
+  },
+  critd: {
+    type: 'Stat',
+    dependencies: ['dex', 'luk'],
+    fn: stats => stats.luk.value * 0.7 + stats.str.value * 0.3
   },
   dodge: {
     type: 'Stat',
