@@ -3,7 +3,7 @@ import { Stat } from '@/game/models/character/stats/Statt.js';
 import { Resource } from '@/game/models/character/stats/Resource.js';
 import { StatModifier } from '@/game/models/character/stats/StatModifier.js';
 import { DependencyManager } from '@/game/core/DependencyManager.js'; // Use the final generic class
-import { characterStatSchema } from '@/game/models/character/characterStatSchema.js';
+import { characterStatSchema } from '@/game/models/character/stats/characterStatSchema.js';
 
 export class StatManager extends EventEmitter {
   /**
