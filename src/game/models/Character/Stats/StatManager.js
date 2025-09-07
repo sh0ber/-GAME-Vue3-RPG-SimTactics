@@ -107,6 +107,8 @@ export class StatManager extends EventEmitter {
   }
 
   _wireSubscribers() {
+    // Derived stats need to know when their dependencies change
+    // When they do, they'll call a function on the subscriber (see Stat class)
     for (const statId in characterStatSchema) {
       const config = characterStatSchema[statId];
       const stat = this.stats[statId];
@@ -136,6 +138,8 @@ export class StatManager extends EventEmitter {
   }
 
   _restoreResources() {
+    // Resource stats need to have their current values set manually on creation
+    // We had to wait until their maxes were fully calculated
     for (const stat of Object.values(this.stats)) {
       if (stat instanceof Resource) stat.restore();
     }
