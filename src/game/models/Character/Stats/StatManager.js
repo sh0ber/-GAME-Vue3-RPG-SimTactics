@@ -117,7 +117,46 @@ export class StatManager extends EventEmitter {
     }
   }
 
-  // ----------------- Dependency order + finalization -----------------
+  // ----------------- Dependency// ----------------- Initialization -----------------
+  _createStats(baseStats) {
+    for (const statId in characterStatSchema) {
+      const config = characterStatSchema[statId];
+      const raw = baseStats[statId] ?? 1;
+      const derivedFn = config.fn ? () => this.stats && config.fn(this.stats) : null;
+      this.stats[statId] = config.type === 'Resource'
+        ? new Resource(raw, derivedFn)
+        : new Stat(raw, derivedFn);
+    }
+  }
+
+  _applySavedModifiers(savedModifiers) {
+    const modifiersByStat = savedModifiers.reduce((acc, mod) => {
+      (acc[mod.stat] = acc[mod.stat] || []).push(mod);
+      return acc;
+    }, {});
+
+    for (const statId in modifiersByStat) {
+      const stat = this.stats[statId];
+      if (stat) {
+        modifiersByStat[statId].forEach(mod => {
+          stat.addModifier(new StatModifier({ ...mod, source: mod.source || {} }));
+        });
+      }
+    }
+  }
+
+  // ----------------- Dependency graph -----------------
+  _wireSubscribers() {
+    for (const statId in characterStatSchema) {
+      const config = characterStatSchema[statId];
+      const stat = this.stats[statId];
+
+      config.dependencies?.forEach(dep => {
+        this.stats[dep].subscribe(stat);
+      });
+    }
+  }
+
   _getDependencyOrder() {
     const visited = new Set();
     const order = [];
@@ -133,11 +172,15 @@ export class StatManager extends EventEmitter {
     return order;
   }
 
+  // ----------------- Finalization -----------------
   _finalizeStats() {
     for (const statId of this._getDependencyOrder()) {
-      const stat = this.stats[statId];
-      stat.recalculateDerived(); // Now that dependencies are sorted, we can calclulate contributions
-      if (stat instanceof Resource) stat.restore(); // Resources are now ready to max out
+      this._finalizeStat(this.stats[statId]);
     }
+  }
+
+  _finalizeStat(stat) {
+    stat.recalculateDerived();
+    if (stat instanceof Resource) stat.restore();
   }
 }
