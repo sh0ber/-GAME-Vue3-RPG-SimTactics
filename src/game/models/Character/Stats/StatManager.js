@@ -13,40 +13,16 @@ export class StatManager extends EventEmitter {
     this.character = character;
     this.stats = {};
     this._init(character);
-  }  
-
-  _init(character) {
-    const baseStats = character.base.stats;
-
-    // 1. Create all stats
-    for (const statId in characterStatSchema) {
-      const config = characterStatSchema[statId];
-      const rawBaseValue = baseStats[statId] ?? 1;
-      const baseFn = config.fn ? () => config.fn(this.stats) : null; // Derived have custom calcs
-      if (config.type === 'Resource') {
-        this.stats[statId] = new Resource(rawBaseValue, baseFn);
-      } else {
-        this.stats[statId] = new Stat(rawBaseValue, baseFn);
-      }
-    }
-
-    // 2. Wire dependencies for derived stats (The 2nd pass means no need for ordering)
-    for (const statId in characterStatSchema) {
-      const config = characterStatSchema[statId];
-      config.dependencies?.forEach(dep => this.stats[dep].subscribe(this.stats[statId]));
-    }
-
-    // 3. Now actually trigger the initial dependency calculation because it is not a lazy calc
-    for (const stat of Object.values(this.stats)) {
-       stat.recalculateDerived();
-    }
-
-    // 4.  Now set resource "current" which requires finished dependencies
-    for (const stat of Object.values(this.stats)) {
-      if (stat instanceof Resource) stat.restore();
-    }
   }
 
+  _init(character, savedModifiers = []) {
+    this._createStats(character.base.stats);
+    this._wireSubscribers();
+    this._applySavedModifiers(savedModifiers);
+    this._computeDerivedInOrder();
+    this._restoreResources();
+  }
+  
   get isAlive() {
     return this.stats['hp'] > 0;
   }
@@ -101,5 +77,67 @@ export class StatManager extends EventEmitter {
       const stat = this.stats[modData.stat];
       stat.removeModifiersBySource(source);
     });
+  }
+
+  // ----------------- Initialization -----------------
+  _createStats(baseStats) {
+    for (const statId in characterStatSchema) {
+      const config = characterStatSchema[statId];
+      const raw = baseStats[statId] ?? 1;
+      const derivedFn = config.fn ? () => this.stats && config.fn(this.stats) : null;
+      this.stats[statId] = config.type === 'Resource'
+        ? new Resource(raw, derivedFn)
+        : new Stat(raw, derivedFn);
+    }
+  }
+
+  _applySavedModifiers(savedModifiers) {
+    for (const statId in characterStatSchema) {
+      const stat = this.stats[statId];
+
+      // Filter modifiers for this stat
+      const modsForStat = savedModifiers.filter(mod => mod.stat === statId);
+
+      modsForStat.forEach(mod => {
+        // Ensure each modifier has a unique source object
+        const sourceObj = mod.source || {};
+        stat.modifiers.set({ ...mod, source: sourceObj });
+      });
+    }
+  }
+
+  _wireSubscribers() {
+    for (const statId in characterStatSchema) {
+      const config = characterStatSchema[statId];
+      const stat = this.stats[statId];
+
+      config.dependencies?.forEach(dep => {
+        this.stats[dep].subscribe(stat);
+      });
+    }
+  }
+
+  _computeDerivedInOrder() {
+    const visited = new Set();
+    const order = [];
+
+    const visit = id => {
+      if (visited.has(id)) return;
+      visited.add(id);
+      (characterStatSchema[id].dependencies || []).forEach(visit);
+      order.push(id);
+    };
+
+    for (const statId in characterStatSchema) visit(statId);
+
+    for (const statId of order) {
+      this.stats[statId].recalculateDerived();
+    }
+  }
+
+  _restoreResources() {
+    for (const stat of Object.values(this.stats)) {
+      if (stat instanceof Resource) stat.restore();
+    }
   }
 }

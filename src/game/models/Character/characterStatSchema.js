@@ -10,10 +10,8 @@ export const characterStatSchema = {
   per: { type: 'Stat' },
   wil: { type: 'Stat' },
   luk: { type: 'Stat' },
-  acc: { type: 'Stat' },  // Should be derived
-  spd: { type: 'Stat' },  // Should be derived
 
-  // Derived
+  // Derived (depends on other stats)
   hp: {
     type: 'Resource',
     dependencies: ['vit', 'wil', 'luk'],

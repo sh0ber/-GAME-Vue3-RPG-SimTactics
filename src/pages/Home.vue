@@ -25,7 +25,6 @@ const WildHead2 = {
 }
 c.equipItem(WildHead1);
 c.equipItem(WildHead2);
-console.log(c);
 </script>
 
 <template>
