@@ -1,4 +1,3 @@
-
 export const characterStatSchema = {
   // Base (no dependencies)
   str: { type: 'Stat' },
@@ -15,36 +14,36 @@ export const characterStatSchema = {
   hp: {
     type: 'Resource',
     dependencies: ['vit', 'wil', 'luk'],
-    fn: stats => stats.vit.value * 10 + stats.wil.value * 2 + stats.luk.value * 1
+    fn: stats => stats.get('vit').value * 10 + stats.get('wil').value * 2 + stats.get('luk').value * 1
   },
   mp: {
     type: 'Resource',
     dependencies: ['int', 'wis', 'wil'],
-    fn: stats => stats.int.value * 5 + stats.wis.value * 3 + stats.wil.value * 1
+    fn: stats => stats.get('int').value * 5 + stats.get('wis').value * 3 + stats.get('wil').value * 1
   },
   acc: {
     type: 'Stat',
     dependencies: ['dex', 'per', 'luk'],
-    fn: stats => stats.dex.value * 0.7 + stats.per.value * 0.3 + stats.luk.value * 0.1
+    fn: stats => stats.get('dex').value * 0.7 + stats.get('per').value * 0.3 + stats.get('luk').value * 0.1
   },
   spd: {
     type: 'Stat',
     dependencies: ['agi', 'dex', 'vit'],
-    fn: stats => stats.agi.value * 0.6 + stats.dex.value * 0.3 + stats.vit.value * 0.1
+    fn: stats => stats.get('agi').value * 0.6 + stats.get('dex').value * 0.3 + stats.get('vit').value * 0.1
   },
   critc: {
     type: 'Stat',
     dependencies: ['dex', 'luk'],
-    fn: stats => stats.dex.value * 0.5 + stats.luk.value * 0.5
+    fn: stats => stats.get('dex').value * 0.5 + stats.get('luk').value * 0.5
   },
   critd: {
     type: 'Stat',
     dependencies: ['luk', 'str'],
-    fn: stats => stats.luk.value * 0.7 + stats.str.value * 0.3
+    fn: stats => stats.get('luk').value * 0.7 + stats.get('str').value * 0.3
   },
   dodge: {
     type: 'Stat',
     dependencies: ['agi', 'dex', 'per'],
-    fn: stats => stats.agi.value * 0.6 + stats.dex.value * 0.2 + stats.per.value * 0.2
+    fn: stats => stats.get('agi').value * 0.6 + stats.get('dex').value * 0.2 + stats.get('per').value * 0.2
   }
 };

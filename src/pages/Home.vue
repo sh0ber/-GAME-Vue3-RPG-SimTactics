@@ -30,10 +30,12 @@ c.equipItem(WildHead2);
 <template>
   <div class="page">
     <div class="name">{{ c.name }}</div>
-    <div v-for="(stat, statName) in c.statManager.stats" :key="statName">
+
+    <div v-for="[statName, stat] of c.statManager.stats" :key="statName">
       {{ statName }}: <span v-if="stat.current">{{ stat.current }} / </span>{{ stat.value }}
     </div>
-    <div v-for="[slot, item] in c.equipment" :key="slot">
+
+    <div v-for="[slot, item] of c.equipment" :key="slot">
       {{ slot }}: {{ item.name }}
     </div>
   </div>

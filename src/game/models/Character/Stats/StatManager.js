@@ -2,146 +2,135 @@ import { EventEmitter } from '@/game/EventEmitter.js';
 import { Stat } from '@/game/models/character/stats/Statt.js';
 import { Resource } from '@/game/models/character/stats/Resource.js';
 import { StatModifier } from '@/game/models/character/stats/StatModifier.js';
+import { DependencyManager } from '@/game/core/DependencyManager.js'; // Use the final generic class
 import { characterStatSchema } from '@/game/models/character/characterStatSchema.js';
 
 export class StatManager extends EventEmitter {
   /**
-   * @param {Object} base - { name: string, stats: { [statId]: number } }
+   * @param {object} character The character data object.
    */
   constructor(character) {
     super();
     this.character = character;
-    this.stats = {};
+    this.stats = new Map();
+    this.dependencyManager = new DependencyManager(this.stats, characterStatSchema);
     this._init(character);
   }
 
   _init(character, savedModifiers = []) {
     this._createStats(character.base.stats);
-    this._wireSubscribers();
+    this._registerDependencies();
     this._applySavedModifiers(savedModifiers);
-    this._finalizeStats();
-  }
-
-  get isAlive() {
-    return this.stats['hp'] > 0;
+    this._initializeDerivedStats();
   }
 
   // ----------------- Stat Access -----------------
+  get isAlive() {
+    // Correctly handle the case where 'hp' might not exist.
+    const hpStat = this.stats.get('hp');
+    return hpStat ? hpStat.current > 0 : false;
+  }
+
   get(statId) {
-    // Only for resource type stats but fallback for regular
-    const stat = this.stats[statId];
+    const stat = this.stats.get(statId);
     if (!stat) throw new Error(`Stat ${statId} not found`);
-    return stat.current ?? stat.value;
+    return stat instanceof Resource ? stat.current : stat.value;
   }
 
   getMax(statId) {
-    // Max stat value
-    const stat = this.stats[statId];
+    const stat = this.stats.get(statId);
     if (!stat) throw new Error(`Stat ${statId} not found`);
     return stat.value;
   }
 
   // ----------------- Resource changes -----------------
   change(statId, delta) {
-    const stat = this.stats[statId];
-    if (!stat) throw new Error(`Stat ${statId} not found`);
-    stat.change(delta); // apply the delta, no event
+    const stat = this.stats.get(statId);
+    if (!stat || !(stat instanceof Resource)) {
+      throw new Error(`Stat ${statId} is not a resource.`);
+    }
+    stat.change(delta);
     if (!this.isAlive) {
-      console.log(`${this.name} died!`);
-      this.emit('HP.zero');
+      console.log(`${this.character.name} died!`);
+      this.emit('hp.zero');
     }
   }
 
   restore(statId) {
-    const stat = this.stats[statId];
-    if (!stat) throw new Error(`Stat ${statId} not found`);
-    const delta = stat.max - stat.current;
-    if (delta === 0) return;
-    this.change(statId, delta);
+    const stat = this.stats.get(statId);
+    if (!stat || !(stat instanceof Resource)) {
+      throw new Error(`Stat ${statId} is not a resource.`);
+    }
+    stat.restore();
   }
 
   // ----------------- Stat Modifiers -----------------
   addModifiersBySource(source) {
     source.modifiers.forEach(modData => {
-      const stat = this.stats[modData.stat];
-      stat.addModifier(new StatModifier({ ...modData, source }));
+      const stat = this.stats.get(modData.stat);
+      if (stat) {
+        stat.addModifier(new StatModifier({ ...modData, source }));
+      }
     });
   }
 
   removeModifiersBySource(source) {
-    const uniqueStats = new Set();
-    source.modifiers.forEach(modData => {
-      if (uniqueStats.has(modData.stat)) return; // Sources may have 1+ modifiers for one stat
-      uniqueStats.add(modData.stat);
-      const stat = this.stats[modData.stat];
-      stat.removeModifiersBySource(source);
+    const uniqueStats = new Set(source.modifiers.map(modData => modData.stat));
+    uniqueStats.forEach(statId => {
+      const stat = this.stats.get(statId);
+      if (stat) {
+        stat.removeModifiersBySource(source);
+      }
     });
   }
 
-  // ----------------- Initialization -----------------
+  // ----------------- Initialization and Dependencies -----------------
   _createStats(baseStats) {
-    for (const statId in characterStatSchema) {
+    for (const statId of Object.keys(characterStatSchema)) {
       const config = characterStatSchema[statId];
       const raw = baseStats[statId] ?? 1;
-      const derivedFn = config.fn ? () => this.stats && config.fn(this.stats) : null;
-      this.stats[statId] = config.type === 'Resource'
+      const derivedFn = config.fn ? () => config.fn(this.stats) : null;
+      
+      const newStat = config.type === 'Resource'
         ? new Resource(raw, derivedFn)
         : new Stat(raw, derivedFn);
+      
+      newStat.id = statId;
+      this.stats.set(statId, newStat);
     }
   }
 
-  _applySavedModifiers(savedModifiers) {
-    const modifiersByStat = savedModifiers.reduce((acc, mod) => {
-      (acc[mod.stat] = acc[mod.stat] || []).push(mod);
-      return acc;
-    }, {});
-
-    for (const statId in modifiersByStat) {
-      const stat = this.stats[statId];
-      if (stat) {
-        modifiersByStat[statId].forEach(mod => {
-          stat.addModifier(new StatModifier({ ...mod, source: mod.source || {} }));
-        });
-      }
-    }
-  }
-
-  // ----------------- Dependency graph -----------------
-  _wireSubscribers() {
-    for (const statId in characterStatSchema) {
-      const config = characterStatSchema[statId];
-      const stat = this.stats[statId];
-
-      config.dependencies?.forEach(dep => {
-        this.stats[dep].subscribeDependent(stat);
+  _registerDependencies() {
+    for (const stat of this.stats.values()) {
+      stat.on('Stat.invalidated', ({ stat: changedStat }) => {
+        this.dependencyManager.propagate(changedStat.id, 'invalidate');
+      });
+      stat.on('Stat.changed', ({ stat: changedStat }) => {
+        this.dependencyManager.propagate(changedStat.id, 'updateDerivedBonus', true);
       });
     }
   }
 
-  _getDependencyOrder() {
-    const visited = new Set();
-    const order = [];
-
-    const visit = id => {
-      if (visited.has(id)) return;
-      visited.add(id);
-      (characterStatSchema[id].dependencies || []).forEach(visit);
-      order.push(id);
-    };
-
-    for (const statId in characterStatSchema) visit(statId);
-    return order;
+  _applySavedModifiers(savedModifiers) {
+    // The previous implementation is okay, but can be improved with Map usage
+    savedModifiers.forEach(mod => {
+      const stat = this.stats.get(mod.stat);
+      if (stat) {
+        stat.addModifier(new StatModifier({ ...mod, source: mod.source || {} }));
+      }
+    });
   }
 
-  // ----------------- Finalization -----------------
-  _finalizeStats() {
-    for (const statId of this._getDependencyOrder()) {
-      this._finalizeStat(this.stats[statId]);
+  _initializeDerivedStats() {
+    const dependencyOrder = this.dependencyManager.getTopologicalOrder();
+    for (const statId of dependencyOrder) {
+      const stat = this.stats.get(statId);
+      if (stat) {
+        stat.updateDerivedBonus();
+        if (stat instanceof Resource) {
+          stat.restore();
+        }
+      }
     }
-  }
-
-  _finalizeStat(stat) {
-    stat.recalculateDerived();
-    if (stat instanceof Resource) stat.restore();
   }
 }
