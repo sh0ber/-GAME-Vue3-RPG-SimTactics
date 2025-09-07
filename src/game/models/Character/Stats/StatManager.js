@@ -19,10 +19,9 @@ export class StatManager extends EventEmitter {
     this._createStats(character.base.stats);
     this._wireSubscribers();
     this._applySavedModifiers(savedModifiers);
-    this._computeDerivedInOrder();
-    this._restoreResources();
+    this._finalizeStats();
   }
-  
+
   get isAlive() {
     return this.stats['hp'] > 0;
   }
@@ -99,7 +98,7 @@ export class StatManager extends EventEmitter {
 
     for (const statId in modifiersByStat) {
       const stat = this.stats[statId];
-      if (stat) { // Check if stat exists
+      if (stat) {
         modifiersByStat[statId].forEach(mod => {
           stat.addModifier(new StatModifier({ ...mod, source: mod.source || {} }));
         });
@@ -108,8 +107,6 @@ export class StatManager extends EventEmitter {
   }
 
   _wireSubscribers() {
-    // Derived stats need to know when their dependencies change
-    // When they do, they'll call a function on the subscriber (see Stat class)
     for (const statId in characterStatSchema) {
       const config = characterStatSchema[statId];
       const stat = this.stats[statId];
@@ -120,7 +117,8 @@ export class StatManager extends EventEmitter {
     }
   }
 
-  _computeDerivedInOrder() {
+  // ----------------- Dependency order + finalization -----------------
+  _getDependencyOrder() {
     const visited = new Set();
     const order = [];
 
@@ -132,17 +130,14 @@ export class StatManager extends EventEmitter {
     };
 
     for (const statId in characterStatSchema) visit(statId);
-
-    for (const statId of order) {
-      this.stats[statId].recalculateDerived();
-    }
+    return order;
   }
 
-  _restoreResources() {
-    // Resource stats need to have their current values set manually on creation
-    // We had to wait until their maxes were fully calculated
-    for (const stat of Object.values(this.stats)) {
-      if (stat instanceof Resource) stat.restore();
+  _finalizeStats() {
+    for (const statId of this._getDependencyOrder()) {
+      const stat = this.stats[statId];
+      stat.recalculateDerived(); // Now that dependencies are sorted, we can calclulate contributions
+      if (stat instanceof Resource) stat.restore(); // Resources are now ready to max out
     }
   }
 }
