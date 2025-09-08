@@ -1,18 +1,17 @@
-import { EventEmitter } from '@/game/EventEmitter.js';
 import { Stat } from '@/game/models/character/stats/Statt.js';
 import { Resource } from '@/game/models/character/stats/Resource.js';
 import { StatModifier } from '@/game/models/character/stats/StatModifier.js';
 import { DependencyManager } from '@/game/core/DependencyManager.js'; // Use the final generic class
 import { characterStatSchema } from '@/game/models/character/stats/characterStatSchema.js';
 
-export class StatManager extends EventEmitter {
+export class StatManager {
   /**
    * @param {object} character The character data object.
    */
   constructor(character) {
-    super();
-    this.character = character;
     this.stats = new Map();
+    this.character = character;
+    this.eventManager = character.eventManager;
     this.dependencyManager = new DependencyManager(this.stats, characterStatSchema);
     this._init(character);
   }
@@ -52,7 +51,7 @@ export class StatManager extends EventEmitter {
     stat.change(delta);
     if (!this.isAlive) {
       console.log(`${this.character.name} died!`);
-      this.emit('hp.zero');
+      this.eventManager.emit('hp.zero');
     }
   }
 

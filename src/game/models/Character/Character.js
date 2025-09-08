@@ -1,12 +1,12 @@
 import { EventEmitter } from '@/game/EventEmitter.js';
 import { StatManager } from '@/game/models/character/stats/StatManager.js';
 
-export class Character extends EventEmitter {
+export class Character {
   constructor(base) {
-    super();
     this.base = base;
     this.name = base.name ?? "Unnamed";
     this.level = base.level ?? 1;
+    this.eventManager = new EventEmitter();
     this.statManager = new StatManager(this);
     this.equipment = new Map();
   }
@@ -31,7 +31,7 @@ export class Character extends EventEmitter {
     this.statManager.change('hp', -amount);
     if (!this.isAlive) {
       console.log(`${this.name} died!`);
-      this.emit('Character.death');
+      this.eventManager.emit('Character.death');
     }
   }
 
